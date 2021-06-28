@@ -53,7 +53,7 @@ body {
   border: 0;
   width: 100%;
   height: auto;
-  border-spacing: 0 5px;
+  border-spacing: 5px;
 }
 
 .container > table tr > td {
