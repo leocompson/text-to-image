@@ -5,6 +5,21 @@ var config  = {
       return chrome.runtime.getManifest().homepage_url;
     }
   },
+  "resize": {
+    "timeout": null,
+    "method": function () {
+      var context = document.documentElement.getAttribute("context");
+      if (context === "win") {
+        if (config.resize.timeout) window.clearTimeout(config.resize.timeout);
+        config.resize.timeout = window.setTimeout(function () {
+          config.storage.write("interface.size", {
+            "width": window.innerWidth || window.outerWidth,
+            "height": window.innerHeight || window.outerHeight
+          });
+        }, 300);
+      }
+    }
+  },
   "clear": {
     "interface": function () {
       var flag = window.confirm("Are you sure you want to clear the app?");
@@ -64,6 +79,28 @@ var config  = {
       }
     }
   },
+  "listeners": {
+    "drop": function (e) {
+      if (e && e.target) {
+        if (e.target.files) {
+          var file = e.target.files[0];
+          if (file) {
+            config.editor.elements.reader = new FileReader();
+            config.editor.elements.reader.onload = function (e) {
+              if (e && e.target) {
+                if (e.target.result) {
+                  config.editor.elements.editable.style.backgroundImage = "url('" + e.target.result + "')";
+                  config.editor.store.metrics();
+                }
+              }
+            };
+            /*  */
+            config.editor.elements.reader.readAsDataURL(file);
+          }
+        }
+      }
+    }
+  },
   "convert": {
     "to": {
       "png": function () {
@@ -91,26 +128,31 @@ var config  = {
       }
     }
   },
-  "listeners": {
-    "drop": function (e) {
-      if (e && e.target) {
-        if (e.target.files) {
-          var file = e.target.files[0];
-          if (file) {
-            config.editor.elements.reader = new FileReader();
-            config.editor.elements.reader.onload = function (e) {
-              if (e && e.target) {
-                if (e.target.result) {
-                  config.editor.elements.editable.style.backgroundImage = "url('" + e.target.result + "')";
-                  config.editor.store.metrics();
-                }
-              }
-            };
+  "port": {
+    "name": '',
+    "connect": function () {
+      config.port.name = "webapp";
+      var context = document.documentElement.getAttribute("context");
+      /*  */
+      if (chrome.runtime) {
+        if (chrome.runtime.connect) {
+          if (context !== config.port.name) {
+            if (document.location.search === '') config.port.name = "form";
+            if (document.location.search === "?tab") config.port.name = "tab";
+            if (document.location.search === "?win") config.port.name = "win";
+            if (document.location.search === "?popup") config.port.name = "popup";
             /*  */
-            config.editor.elements.reader.readAsDataURL(file);
+            if (config.port.name === "popup") {
+              document.documentElement.style.width = "770px";
+              document.documentElement.style.height = "570px";
+            }
+            /*  */
+            chrome.runtime.connect({"name": config.port.name});
           }
         }
       }
+      /*  */
+      document.documentElement.setAttribute("context", config.port.name);
     }
   },
   "app": {
@@ -148,6 +190,40 @@ var config  = {
       });
     }
   },
+  "load": function () {
+    var reload = document.getElementById("reload");
+    var support = document.getElementById("support");
+    var convert = document.getElementById("convert");
+    var donation = document.getElementById("donation");
+    var clear = document.querySelector(".container .clear");
+    var buttons = document.querySelector(".container > table");
+    /*  */
+    config.editor.elements.buttons = [...buttons.querySelectorAll("span")];
+    config.editor.elements.color.fore = document.querySelector("input[class='fore']");
+    config.editor.elements.color.back = document.querySelector("input[class='back']");
+    /*  */
+    config.editor.elements.select = document.querySelector("select");
+    config.editor.elements.drop = document.querySelector("input[type='file']");
+    config.editor.elements.drop.addEventListener("change", config.listeners.drop, false);
+    config.editor.elements.select.addEventListener("change", config.style.textarea, false);
+    /*  */
+    clear.addEventListener("click", config.clear.interface, false);
+    convert.addEventListener("click", config.convert.to.png, false);
+    reload.addEventListener("click", function () {document.location.reload()}, false);
+    /*  */
+    support.addEventListener("click", function () {
+      var url = config.addon.homepage();
+      chrome.tabs.create({"url": url, "active": true});
+    }, false);
+    /*  */
+    donation.addEventListener("click", function () {
+      var url = config.addon.homepage() + "?reason=support";
+      chrome.tabs.create({"url": url, "active": true});
+    }, false);
+    /*  */
+    config.storage.load(config.app.start);
+    window.removeEventListener("load", config.load, false);
+  },
   "style": {
     "font": {
       "value": 2,
@@ -170,13 +246,20 @@ var config  = {
           if (key === "decreaseFontSize") document.execCommand("fontSize", false, config.style.font.size(-1));
           if (key === "increaseFontSize") document.execCommand("fontSize", false, config.style.font.size(+1));
           if (key === "fontName") document.execCommand("fontName", false, config.editor.elements.select.value);
+          /*  */
+          if (key === "fileio") {
+            var input = span.querySelector("input");
+            if (input) input.click();
+          }
+          /*  */
           if (key === "foreColor") {
             var color = span.querySelector("input").value;
-            document.execCommand(key, false, color);
+            if (color) document.execCommand(key, false, color);
           }
+          /*  */
           if (key === "backColor") {
             var color = span.querySelector("input").value;
-            config.editor.elements.editable.style.backgroundColor = color;
+            if (color) config.editor.elements.editable.style.backgroundColor = color;
           }
         }
         /*  */
@@ -186,49 +269,9 @@ var config  = {
   }
 };
 
-var load = function () {
-  var reload = document.getElementById("reload");
-  var support = document.getElementById("support");
-  var convert = document.getElementById("convert");
-  var donation = document.getElementById("donation");
-  var clear = document.querySelector(".container .clear");
-  var buttons = document.querySelector(".container > table");
-  /*  */
-  config.editor.elements.buttons = [...buttons.querySelectorAll("span")];
-  config.editor.elements.color.fore = document.querySelector("input[class='fore']");
-  config.editor.elements.color.back = document.querySelector("input[class='back']");
-  /*  */
-  support.addEventListener("click", function () {
-    var url = config.addon.homepage();
-    chrome.tabs.create({"url": url, "active": true});
-  }, false);
-  /*  */
-  donation.addEventListener("click", function () {
-    var url = config.addon.homepage() + "?reason=support";
-    chrome.tabs.create({"url": url, "active": true});
-  }, false);
-  /*  */
-  config.editor.elements.select = document.querySelector("select");
-  config.editor.elements.drop = document.querySelector("input[type='file']");
-  config.editor.elements.drop.addEventListener("change", config.listeners.drop, false);
-  config.editor.elements.select.addEventListener("change", config.style.textarea, false);
-  /*  */
-  clear.addEventListener("click", config.clear.interface, false);
-  convert.addEventListener("click", config.convert.to.png, false);
-  reload.addEventListener("click", function () {document.location.reload()}, false);
-  /*  */
-  config.storage.load(config.app.start);
-  window.removeEventListener("load", load, false);
-};
+config.port.connect();
 
-window.addEventListener("resize", function () {
-  if (config.resize.timeout) window.clearTimeout(config.resize.timeout);
-  config.resize.timeout = window.setTimeout(function () {
-    config.storage.write("width", window.innerWidth || window.outerWidth);
-    config.storage.write("height", window.innerHeight || window.outerHeight);
-  }, 1000);
-}, false);
-
-window.addEventListener("load", load, false);
+window.addEventListener("load", config.load, false);
+window.addEventListener("resize", config.resize.method, false);
 window.addEventListener("dragover", function (e) {e.preventDefault()});
 window.addEventListener("drop", function (e) {if (e.target.id !== "fileio") e.preventDefault()});

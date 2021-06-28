@@ -1,13 +1,21 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "manifest_version": 2,
   "offline_enabled": true,
   "name": "Text to Image",
-  "permissions": ["storage"],
   "short_name": "text-to-image",
-  "background": {"scripts": ["lib/background.js"]},
+  "permissions": ["storage", "contextMenus"],
   "homepage_url": "https://mybrowseraddon.com/text-to-image.html",
   "description": "Easily convert text to image with a custom background image.",
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "lib/config.js", 
+      "lib/chrome.js",
+      "lib/runtime.js",
+      "lib/common.js"
+    ]
+  },
   "browser_action": {
     "default_title": "Text to Image",
     "default_icon": {
