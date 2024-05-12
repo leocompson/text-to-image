@@ -3,7 +3,7 @@ body {
   border: 0;
   padding: 0;
   overflow-x: hidden;
-  font-family: arial,sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .toolbar {
@@ -22,14 +22,14 @@ body {
   border: 0;
   padding: 0;
   width: 42px;
-  color: #777;
+  color: #333;
   height: 42px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   user-select: none;
   text-align: center;
   transition: 300ms ease all;
-  font-family: arial,sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .toolbar > table tr td:hover {
@@ -37,7 +37,7 @@ body {
 }
 
 .toolbar > table tr td svg {
-  fill: #777;
+  fill: #555;
   pointer-events: none;
   vertical-align: middle;
 }
@@ -96,7 +96,7 @@ body {
   text-align: center;
   display: inline-block;
   vertical-align: middle;
-  background-size: 10px !important;
+  background-size: 12px !important;
 }
 
 .container > table .undo:before {background: url('icons/undo.png') no-repeat center center}
@@ -131,11 +131,12 @@ body {
 
 .container > table #convert {
   border: 0;
-  width: 84px;
+  width: 92px;
   color: #fff;
   height: 42px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 42px;
   text-align: center;
   letter-spacing: 1px;
@@ -164,12 +165,12 @@ body {
   margin: 0;
   border: 0;
   padding: 0;
-  color: #555;
-  width: 84px;
+  color: #333;
+  width: 147px;
   height: 42px;
   outline: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   text-indent: 5px;
   font-family: monospace;
   box-sizing: border-box;
@@ -188,13 +189,12 @@ body {
 }
 
 .container .textarea > div {
-  color: #555;
+  color: #333;
   resize: both;
   margin: auto;
-  height: 70vh;
   padding: 10px;
   outline: none;
-  font-size: 12px;
+  font-size: 15px;
   margin-top: 5px;
   text-align: left;
   margin-bottom: 5px;
@@ -202,18 +202,11 @@ body {
   background-color: #fff;
   width: calc(100% - 10px);
   background-size: contain;
+  height: calc(100vh - 128px);
   background-position: center;
   background-repeat: no-repeat;
-  font-family: arial,sans-serif;
+  font-family: system-ui, sans-serif;
   border: solid 1px rgba(0,0,0,0.1);
-}
-
-html[context="webapp"] .toolbar {
-  display: none;
-}
-
-html[context="popup"] body {
-  overflow-y: hidden;
 }
 
 @media (max-width: 800px) {
@@ -252,4 +245,16 @@ html[context="popup"] body {
     font-weight: normal;
     font-family: monaco, "andale mono", "lucida console", "courier new", monospace;
   }
+}
+
+html[context="popup"] body {
+  overflow-y: hidden;
+}
+
+html[context="popup"] .container .textarea > div {
+  height: calc(100vh - 178px);
+}
+
+html[context="webapp"] .toolbar {
+  display: none;
 }

@@ -1,28 +1,75 @@
+var background = {
+  "port": null,
+  "message": {},
+  "receive": function (id, callback) {
+    if (id) {
+      background.message[id] = callback;
+    }
+  },
+  "connect": function (port) {
+    chrome.runtime.onMessage.addListener(background.listener); 
+    /*  */
+    if (port) {
+      background.port = port;
+      background.port.onMessage.addListener(background.listener);
+      background.port.onDisconnect.addListener(function () {
+        background.port = null;
+      });
+    }
+  },
+  "send": function (id, data) {
+    if (id) {
+      if (background.port) {
+        if (background.port.name !== "webapp") {
+          chrome.runtime.sendMessage({
+            "method": id,
+            "data": data,
+            "path": "interface-to-background"
+          }, function () {
+            return chrome.runtime.lastError;
+          });
+        }
+      }
+    }
+  },
+  "post": function (id, data) {
+    if (id) {
+      if (background.port) {
+        background.port.postMessage({
+          "method": id,
+          "data": data,
+          "port": background.port.name,
+          "path": "interface-to-background"
+        });
+      }
+    }
+  },
+  "listener": function (e) {
+    if (e) {
+      for (let id in background.message) {
+        if (background.message[id]) {
+          if ((typeof background.message[id]) === "function") {
+            if (e.path === "background-to-interface") {
+              if (e.method === id) {
+                background.message[id](e.data);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 var config  = {
-  "resize": {"timeout": null},
   "addon": {
     "homepage": function () {
       return chrome.runtime.getManifest().homepage_url;
     }
   },
-  "resize": {
-    "timeout": null,
-    "method": function () {
-      var context = document.documentElement.getAttribute("context");
-      if (context === "win") {
-        if (config.resize.timeout) window.clearTimeout(config.resize.timeout);
-        config.resize.timeout = window.setTimeout(function () {
-          config.storage.write("interface.size", {
-            "width": window.innerWidth || window.outerWidth,
-            "height": window.innerHeight || window.outerHeight
-          });
-        }, 300);
-      }
-    }
-  },
   "clear": {
     "interface": function () {
-      var flag = window.confirm("Are you sure you want to clear the app?");
+      const flag = window.confirm("Are you sure you want to clear the app?");
       if (flag) {
         config.editor.elements.color.fore.value =  "#555555";
         config.editor.elements.color.back.value =  "#ffffff";
@@ -36,6 +83,24 @@ var config  = {
       }
     }
   },
+  "resize": {
+    "timeout": null,
+    "method": function () {
+      if (config.port.name === "win") {
+        if (config.resize.timeout) window.clearTimeout(config.resize.timeout);
+        config.resize.timeout = window.setTimeout(async function () {
+          const current = await chrome.windows.getCurrent();
+          /*  */
+          config.storage.write("interface.size", {
+            "top": current.top,
+            "left": current.left,
+            "width": current.width,
+            "height": current.height
+          });
+        }, 1000);
+      }
+    }
+  },
   "editor": {
     "elements": {
       "drop": null,
@@ -43,7 +108,7 @@ var config  = {
       "reader": null,
       "color": {"fore": null, "back": null},
       get editable () {
-        var textarea = document.querySelector(".textarea");
+        const textarea = document.querySelector(".textarea");
         return textarea.querySelector("div");
       }
     },
@@ -58,7 +123,9 @@ var config  = {
   },
   "storage": {
     "local": {},
-    "read": function (id) {return config.storage.local[id]},
+    "read": function (id) {
+      return config.storage.local[id];
+    },
     "load": function (callback) {
       chrome.storage.local.get(null, function (e) {
         config.storage.local = e;
@@ -68,7 +135,7 @@ var config  = {
     "write": function (id, data) {
       if (id) {
         if (data !== '' && data !== null && data !== undefined) {
-          var tmp = {};
+          let tmp = {};
           tmp[id] = data;
           config.storage.local[id] = data;
           chrome.storage.local.set(tmp, function () {});
@@ -79,11 +146,38 @@ var config  = {
       }
     }
   },
+  "port": {
+    "name": '',
+    "connect": function () {
+      config.port.name = "webapp";
+      const context = document.documentElement.getAttribute("context");
+      /*  */
+      if (chrome.runtime) {
+        if (chrome.runtime.connect) {
+          if (context !== config.port.name) {
+            if (document.location.search === '') config.port.name = "form";
+            if (document.location.search === "?tab") config.port.name = "tab";
+            if (document.location.search === "?win") config.port.name = "win";
+            if (document.location.search === "?popup") config.port.name = "popup";
+            /*  */
+            if (config.port.name === "popup") {
+              document.documentElement.style.width = "770px";
+              document.documentElement.style.height = "570px";
+            }
+            /*  */
+            chrome.runtime.connect({"name": config.port.name});
+          }
+        }
+      }
+      /*  */
+      document.documentElement.setAttribute("context", config.port.name);
+    }
+  },
   "listeners": {
     "drop": function (e) {
       if (e && e.target) {
         if (e.target.files) {
-          var file = e.target.files[0];
+          const file = e.target.files[0];
           if (file) {
             config.editor.elements.reader = new FileReader();
             config.editor.elements.reader.onload = function (e) {
@@ -105,13 +199,13 @@ var config  = {
     "to": {
       "png": function () {
         try {
-          var textarea = document.querySelector(".textarea");
+          const textarea = document.querySelector(".textarea");
           /*  */
           textarea.setAttribute("print", '');
           html2canvas(textarea, {"useCORS": true, "logging": false, "scale": 1}).then(canvas => {
             canvas.toBlob(function (blob) {
-              var a = document.createElement('a');
-              var url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              const url = window.URL.createObjectURL(blob);
               /*  */
               a.href = url;
               a.download = "result.png";
@@ -126,33 +220,6 @@ var config  = {
           }).catch(function () {});
         } catch (e) {}
       }
-    }
-  },
-  "port": {
-    "name": '',
-    "connect": function () {
-      config.port.name = "webapp";
-      var context = document.documentElement.getAttribute("context");
-      /*  */
-      if (chrome.runtime) {
-        if (chrome.runtime.connect) {
-          if (context !== config.port.name) {
-            if (document.location.search === '') config.port.name = "form";
-            if (document.location.search === "?tab") config.port.name = "tab";
-            if (document.location.search === "?win") config.port.name = "win";
-            if (document.location.search === "?popup") config.port.name = "popup";
-            /*  */
-            if (config.port.name === "popup") {
-              document.documentElement.style.width = "770px";
-              document.documentElement.style.height = "570px";
-            }
-            /*  */
-            chrome.runtime.connect({"name": config.port.name});
-          }
-        }
-      }
-      /*  */
-      document.documentElement.setAttribute("context", config.port.name);
     }
   },
   "app": {
@@ -177,9 +244,9 @@ var config  = {
       });
       /*  */
       config.editor.elements.editable.addEventListener("click", function (e) {
-        var parent = e.target.closest("font[size]");
+        const parent = e.target.closest("font[size]");
         if (parent) {
-          var size = parent.getAttribute("size");
+          const size = parent.getAttribute("size");
           if (size) {
             config.style.font.value = Number(parent.getAttribute("size"));
             return;
@@ -191,12 +258,12 @@ var config  = {
     }
   },
   "load": function () {
-    var reload = document.getElementById("reload");
-    var support = document.getElementById("support");
-    var convert = document.getElementById("convert");
-    var donation = document.getElementById("donation");
-    var clear = document.querySelector(".container .clear");
-    var buttons = document.querySelector(".container > table");
+    const reload = document.getElementById("reload");
+    const support = document.getElementById("support");
+    const convert = document.getElementById("convert");
+    const donation = document.getElementById("donation");
+    const clear = document.querySelector(".container .clear");
+    const buttons = document.querySelector(".container > table");
     /*  */
     config.editor.elements.buttons = [...buttons.querySelectorAll("span")];
     config.editor.elements.color.fore = document.querySelector("input[class='fore']");
@@ -209,15 +276,18 @@ var config  = {
     /*  */
     clear.addEventListener("click", config.clear.interface, false);
     convert.addEventListener("click", config.convert.to.png, false);
-    reload.addEventListener("click", function () {document.location.reload()}, false);
+    /*  */
+    reload.addEventListener("click", function () {
+      document.location.reload();
+    }, false);
     /*  */
     support.addEventListener("click", function () {
-      var url = config.addon.homepage();
+      const url = config.addon.homepage();
       chrome.tabs.create({"url": url, "active": true});
     }, false);
     /*  */
     donation.addEventListener("click", function () {
-      var url = config.addon.homepage() + "?reason=support";
+      const url = config.addon.homepage() + "?reason=support";
       chrome.tabs.create({"url": url, "active": true});
     }, false);
     /*  */
@@ -236,29 +306,30 @@ var config  = {
       }
     },
     "textarea": function (e) {
-      var span = e.target.closest("span");
+      const span = e.target.closest("span");
       if (span) {
-        var key = span.getAttribute("id");
-        var command = span.getAttribute("class");
+        const key = span.getAttribute("id");
+        const command = span.getAttribute("class");
         /*  */
-        if (command) document.execCommand(command, false, null);
-        else {
+        if (command) {
+          document.execCommand(command, false, null);
+        } else {
           if (key === "decreaseFontSize") document.execCommand("fontSize", false, config.style.font.size(-1));
           if (key === "increaseFontSize") document.execCommand("fontSize", false, config.style.font.size(+1));
           if (key === "fontName") document.execCommand("fontName", false, config.editor.elements.select.value);
           /*  */
           if (key === "fileio") {
-            var input = span.querySelector("input");
+            const input = span.querySelector("input");
             if (input) input.click();
           }
           /*  */
           if (key === "foreColor") {
-            var color = span.querySelector("input").value;
+            const color = span.querySelector("input").value;
             if (color) document.execCommand(key, false, color);
           }
           /*  */
           if (key === "backColor") {
-            var color = span.querySelector("input").value;
+            const color = span.querySelector("input").value;
             if (color) config.editor.elements.editable.style.backgroundColor = color;
           }
         }
