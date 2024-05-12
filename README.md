@@ -1,4 +1,4 @@
-Text to Image addon enables you to convert any text to an image file. Open the addon's interface, write your desired text, and apply formatting via the top toolbar. You can also add a desired background image or background color to the textarea. Once you are done, please press on the download button to save the result as a PNG file to your machine. The download path is the default download location on your machine. 
+Text to Image (PNG) addon enables you to convert any text to an image file. Open the addon's interface, write your desired text, and apply formatting via the top toolbar. You can also add a desired background image or background color to the textarea. Once you are done, please press on the download button to save the result as a PNG file to your machine. The download path is the default download location on your machine. 
 
 Please note that, if you resize the addon's interface, the resulting image will be resized as well. This addon uses an opensource library called - html2canvas - to convert an HTML element to image. Please visit this (https://github.com/niklasvh/html2canvas) repo to get more info about this conversion library.
 
