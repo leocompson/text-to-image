@@ -96,7 +96,7 @@ body {
   text-align: center;
   display: inline-block;
   vertical-align: middle;
-  background-size: 12px !important;
+  background-size: 16px !important;
 }
 
 .container > table .undo:before {background: url('icons/undo.png') no-repeat center center}
@@ -135,7 +135,7 @@ body {
   color: #fff;
   height: 42px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 42px;
   text-align: center;
@@ -170,7 +170,7 @@ body {
   height: 42px;
   outline: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   text-indent: 5px;
   font-family: monospace;
   box-sizing: border-box;

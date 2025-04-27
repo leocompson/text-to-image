@@ -1,27 +1,37 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.5",
   "manifest_version": 3,
-  "offline_enabled": true,
   "name": "Text to Image (PNG)",
   "homepage_url": "https://mybrowseraddon.com/text-to-image.html",
   "description": "Easily convert text to image (.png) with a custom background image.",
   "commands": {
     "_execute_action": {}
   },
-  "background": {
-    "service_worker": "background.js"
-  },
   "permissions": [
     "storage", 
     "contextMenus"
   ],
+  "browser_specific_settings": {
+    "gecko": {
+      "strict_min_version": "109.0",
+      "id": "{7eb00dc4-ea10-4f7c-9ae7-51074921dae9}"
+    }
+  },
+  "background": {
+    "scripts": [
+      "lib/config.js",
+      "lib/chrome.js",
+      "lib/runtime.js",
+      "lib/common.js"
+    ]
+  },
   "action": {
     "default_title": "Text to Image",
     "default_icon": {
-      "16": "data/icons/16.png",
-      "32": "data/icons/32.png",
-      "48": "data/icons/48.png",
-      "64": "data/icons/64.png"
+      "16": "data/icons/toolbar/16.png",
+      "32": "data/icons/toolbar/32.png",
+      "48": "data/icons/toolbar/48.png",
+      "64": "data/icons/toolbar/64.png"
     }
   },
   "icons": {
