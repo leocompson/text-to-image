@@ -6,47 +6,12 @@ body {
   font-family: system-ui, sans-serif;
 }
 
-.toolbar {
-  top: 0;
-  right: 0;
-  z-index: 11;
-  position: absolute;
-}
-
-.toolbar > table {
-  border-spacing: 5px;
-  table-layout: fixed;
-}
-
-.toolbar > table tr td {
-  border: 0;
-  padding: 0;
-  width: 42px;
-  color: #333;
-  height: 42px;
-  font-size: 13px;
-  cursor: pointer;
-  user-select: none;
-  text-align: center;
-  transition: 300ms ease all;
-  font-family: system-ui, sans-serif;
-}
-
-.toolbar > table tr td:hover {
-  background-color: rgba(0,0,0,0.05);
-}
-
-.toolbar > table tr td svg {
-  fill: #555;
-  pointer-events: none;
-  vertical-align: middle;
-}
-
 .container {
   width: 100%;
   height: auto;
   margin: 0 auto;
   text-align: center;
+  background-color: #fff;
 }
 
 .container > table {
@@ -76,11 +41,11 @@ body {
 
 .container > table tr > td > span[id],
 .container > table tr > td > span[class] {
-  border: solid 1px rgba(0,0,0,0.1);
+  border: solid 1px rgba(0, 0, 0, 0.1);
 }
 
 .container > table tr > td > span:hover {
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .container > table tr > td > span:before {
@@ -137,12 +102,17 @@ body {
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  line-height: 42px;
+  line-height: 44px;
   text-align: center;
   letter-spacing: 1px;
   font-family: monospace;
   text-transform: uppercase;
   background-color: #9147d5;
+  transition: 300ms ease background-color;
+}
+
+.container > table #convert:hover {
+  background-color: #833bc5;
 }
 
 .container > table tr > td > span > input {
@@ -158,7 +128,7 @@ body {
   vertical-align: middle;
   box-sizing: border-box;
   background-color: transparent;
-  border-left: solid 1px rgba(0,0,0,0.05);
+  border-left: solid 1px rgba(0, 0, 0, 0.05);
 }
 
 .container > table tr > td > span > select {
@@ -174,6 +144,7 @@ body {
   text-indent: 5px;
   font-family: monospace;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
 .container > table tr > td > span > input:focus {
@@ -206,7 +177,45 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   font-family: system-ui, sans-serif;
-  border: solid 1px rgba(0,0,0,0.1);
+  border: solid 1px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar {
+  top: 0;
+  right: 0;
+  z-index: 11;
+  position: absolute;
+}
+
+.toolbar > table {
+  border-spacing: 5px;
+  table-layout: fixed;
+}
+
+.toolbar > table tr td {
+  border: 0;
+  padding: 0;
+  width: 42px;
+  color: #333;
+  height: 42px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  background-color: #fff;
+  transition: 300ms ease all;
+  font-family: system-ui, sans-serif;
+}
+
+.toolbar > table tr td:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.toolbar > table tr td svg {
+  fill: #555;
+  margin-top: -4px;
+  pointer-events: none;
+  vertical-align: middle;
 }
 
 @media (max-width: 800px) {
@@ -238,23 +247,55 @@ body {
   }
 }
 
-@-moz-document url-prefix() {
-  .container > table #convert,
-  .container > table tr > td > span > select {
-    font-size: 11px;
-    font-weight: normal;
-    font-family: monaco, "andale mono", "lucida console", "courier new", monospace;
-  }
-}
-
-html[context="popup"] body {
+html[context='popup'] body {
   overflow-y: hidden;
 }
 
-html[context="popup"] .container .textarea > div {
+html[context='popup'] .container .textarea > div {
   height: calc(100vh - 178px);
 }
 
-html[context="webapp"] .toolbar {
+html[context='webapp'] .toolbar #reload,
+html[context='webapp'] .toolbar #support,
+html[context='webapp'] .toolbar #donation {
   display: none;
+}
+
+html[theme='dark'] {
+  filter: invert(1);
+  color-scheme: dark;
+}
+
+html[theme='dark'] .container > table #convert {
+  color: #ebebeb;
+  filter: invert(1);
+}
+
+html[theme='dark'] .container > table #foreColor input,
+html[theme='dark'] .container > table #backColor input {
+  color: #000000;
+  filter: invert(1);
+  background-color: #121212;
+  border-color: rgb(255 255 255 / 15%);
+}
+
+html[theme='dark'] .container .textarea {
+  filter: invert(1);
+  background-color: #121212;
+}
+
+html[theme='dark'] .container .textarea > div {
+  filter: brightness(0.85);
+  border-color: rgb(255 255 255 / 20%);
+}
+
+html[theme='dark'] .container > table #foreColor:before,
+html[theme='dark'] .container > table #backColor:before {
+  filter: hue-rotate(180deg) brightness(2);
+}
+
+html[theme='dark'] .container > table tr > td > span > select {
+  color: #ebebeb;
+  filter: invert(1);
+  background-color: #121212;
 }

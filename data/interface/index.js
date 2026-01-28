@@ -202,6 +202,8 @@ var config  = {
           const textarea = document.querySelector(".textarea");
           /*  */
           textarea.setAttribute("print", '');
+          document.documentElement.removeAttribute("theme");
+          /*  */
           html2canvas(textarea, {"useCORS": true, "logging": false, "scale": 1}).then(canvas => {
             canvas.toBlob(function (blob) {
               const a = document.createElement('a');
@@ -224,12 +226,15 @@ var config  = {
   },
   "app": {
     "start": function () {
+      const theme = config.storage.read("theme") !== undefined ? config.storage.read("theme") : "light";
+      /*  */
       config.editor.elements.color.fore.value = config.storage.read("editor-color-fore") !== undefined ? config.storage.read("editor-color-fore") : "#555555";
       config.editor.elements.color.back.value = config.storage.read("editor-color-back") !== undefined ? config.storage.read("editor-color-back") : "#ffffff";
       config.editor.elements.select.value = config.storage.read("editor-select-value") !== undefined ? config.storage.read("editor-select-value") : "arial, sans-serif";
       config.editor.elements.editable.outerHTML = config.storage.read("editor-outer-html") !== undefined ? config.storage.read("editor-outer-html") : "<div xmlns='http://www.w3.org/1999/xhtml' contenteditable></div>";
       /*  */
       config.editor.elements.editable.focus();
+      document.documentElement.setAttribute("theme", theme !== undefined ? theme : "light");
       config.editor.elements.editable.addEventListener("keyup", config.editor.store.metrics);
       config.editor.elements.color.fore.addEventListener("input", config.style.textarea, false);
       config.editor.elements.color.back.addEventListener("input", config.style.textarea, false);
@@ -258,6 +263,7 @@ var config  = {
     }
   },
   "load": function () {
+    const theme = document.getElementById("theme");
     const reload = document.getElementById("reload");
     const support = document.getElementById("support");
     const convert = document.getElementById("convert");
@@ -289,6 +295,14 @@ var config  = {
     donation.addEventListener("click", function () {
       const url = config.addon.homepage() + "?reason=support";
       chrome.tabs.create({"url": url, "active": true});
+    }, false);
+    /*  */
+    theme.addEventListener("click", function () {
+      let attribute = document.documentElement.getAttribute("theme");
+      attribute = attribute === "dark" ? "light" : "dark";
+      /*  */
+      document.documentElement.setAttribute("theme", attribute);
+      config.storage.write("theme", attribute);
     }, false);
     /*  */
     config.storage.load(config.app.start);
